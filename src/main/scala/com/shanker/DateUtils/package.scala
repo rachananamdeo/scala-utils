@@ -2,20 +2,17 @@
 package com.shanker
 
 import java.time.Instant
+import java.time.ZoneId
+// import com.shanker.exception.ValidationException
+import java.time.ZonedDateTime
 import java.util.Calendar
 import java.util.Date
 
 import scala.util.Try
 
-// import com.shanker.exception.ValidationException
-import java.time.ZonedDateTime
-import java.time.ZoneId
-import com.shanker.exception.ValidationException
-import com.shanker.exception.EException
 import com.shanker.exception.ConversionException
-import java.util.Locale
-import java.text.DateFormat
-import com.shanker.exception.ElementnotFoundException
+import com.shanker.exception.EException
+import com.shanker.exception.ValidationException
 
 package object DateUtils {
 
