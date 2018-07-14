@@ -8,11 +8,14 @@ import java.time.ZonedDateTime
 import java.util.Calendar
 import java.util.Date
 
+import scala.util.control.Breaks._
 import scala.util.Try
 
-import com.shanker.exception.ConversionException
 import com.shanker.exception.EException
+import com.shanker.exception.ConversionException
 import com.shanker.exception.ValidationException
+import com.shanker.exception.PatternFoundException
+import java.text.SimpleDateFormat
 
 package object DateUtils {
 
@@ -27,8 +30,91 @@ package object DateUtils {
       Try(Left(Date.from(Instant.parse(dateString))))
         .getOrElse(Right(ValidationException(s"${dateString} isn't in valid instant string")))
     }
+
+    private def generalMethod(bool: Boolean, pattern: String) =
+      {
+        if (bool) {
+          Left(new SimpleDateFormat(pattern).parse(dateString))
+        } else {
+          Right(PatternFoundException(s"$dateString has no standard Pattern"))
+        }
+      }
+
+    /**
+     * a generic Method which tries to match the given string
+     * with pre-defined date pattern
+     * if found valid, then converts to date
+     * else @PatternFoundException is thrown
+     *
+     * Available Patterns are
+     *
+     * "MM/dd/yyyy",
+     * "dd-MMM-yyyy",
+     * "MM dd, yyyy",
+     * "E, MMM dd yyyy",
+     * "dd-M-yyyy hh:mm:ss",
+     * "dd MMMM yyyy",
+     * "dd MMMM yyyy zzzz",
+     * "E, dd MMM yyyy HH:mm:ss z",
+     * "E, MMM dd yyyy HH:mm:ss"
+     */
+    def toDate: Either[Date, EException] = {
+
+      val patternsDefined = new UnmodifiableSeq(List(
+        "MM/dd/yyyy",
+        "dd-MMM-yyyy",
+        "MM dd, yyyy",
+        "E, MMM dd yyyy",
+        "dd-M-yyyy hh:mm:ss",
+        "dd MMMM yyyy",
+        "dd MMMM yyyy zzzz",
+        "E, dd MMM yyyy HH:mm:ss z",
+        "E, MMM dd yyyy HH:mm:ss"))
+
+      var foundele = false
+      var pattern = ""
+
+      breakable {
+        patternsDefined.foreach(pat => {
+          if (pat.r.pattern.matcher(dateString).matches()) {
+            foundele = true
+            pattern = pat
+            break
+          }
+        })
+      }
+      generalMethod(foundele, pattern)
+    }
+
+    /**
+     * Use this method for this pattern
+     * for MM/dd/yyyy
+     */
+    @inline def MMddyyyy = generalMethod(true, "MM/dd/yyyy")
     
-    // TODO for other Date string Formats
+    /**
+     * Use this method for this pattern
+     * for dd-M-yyyy hh:mm:ss
+     */
+    @inline def ddMyyyyhhmmss = generalMethod(true, "dd-M-yyyy hh:mm:ss")
+    
+    /**
+     * Use this method for this pattern
+     * dd MMMM yyyy
+     */
+    @inline def ddMMMMyyyy = generalMethod(true, "dd MMMM yyyy")
+    
+    /**
+     * Use this Method for this pattern
+     * dd MMMM yyyy zzzz
+     */
+    @inline def ddMMMMyyyyzzzz = generalMethod(true, "dd MMMM yyyy zzzz")
+    
+    /**
+     * Use this Method for this pattern
+     * E, dd MMM yyyy HH:mm:ss z
+     */
+    @inline def EddMMMyyyyHHmmssz = generalMethod(true, "E, dd MMM yyyy HH:mm:ss z")
 
   }
 

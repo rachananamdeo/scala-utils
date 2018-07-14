@@ -8,4 +8,6 @@ case class ConversionException(exceptionStr: String) extends EException
 
 case class ElementnotFoundException(exceptionStr: String) extends EException
 
+case class PatternFoundException(exceptionStr: String) extends EException
+
 case class GenericException(exceptionStr: String) extends EException
