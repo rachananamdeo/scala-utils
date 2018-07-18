@@ -1,21 +1,30 @@
 
 package com.shanker
 
+import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.ZoneId
-// import com.shanker.exception.ValidationException
 import java.time.ZonedDateTime
 import java.util.Calendar
 import java.util.Date
+import java.util.TimeZone
 
-import scala.util.control.Breaks._
 import scala.util.Try
+import scala.util.control.Breaks.break
+import scala.util.control.Breaks.breakable
 
-import com.shanker.exception.EException
+import org.joda.time.DateTime
+import org.joda.time.Days
+import org.joda.time.Minutes
+import org.joda.time.Months
+import org.joda.time.Seconds
+import org.joda.time.Years
+
 import com.shanker.exception.ConversionException
-import com.shanker.exception.ValidationException
+import com.shanker.exception.EException
+import com.shanker.exception.ElementnotFoundException
 import com.shanker.exception.PatternFoundException
-import java.text.SimpleDateFormat
+import com.shanker.exception.ValidationException
 
 package object DateUtils {
 
@@ -31,7 +40,7 @@ package object DateUtils {
         .getOrElse(Right(ValidationException(s"${dateString} isn't in valid instant string")))
     }
 
-    private def generalMethod(bool: Boolean, pattern: String) =
+    private[this] def generalMethod(bool: Boolean, pattern: String) =
       {
         if (bool) {
           Left(new SimpleDateFormat(pattern).parse(dateString))
@@ -91,25 +100,25 @@ package object DateUtils {
      * for MM/dd/yyyy
      */
     @inline def MMddyyyy = generalMethod(true, "MM/dd/yyyy")
-    
+
     /**
      * Use this method for this pattern
      * for dd-M-yyyy hh:mm:ss
      */
     @inline def ddMyyyyhhmmss = generalMethod(true, "dd-M-yyyy hh:mm:ss")
-    
+
     /**
      * Use this method for this pattern
      * dd MMMM yyyy
      */
     @inline def ddMMMMyyyy = generalMethod(true, "dd MMMM yyyy")
-    
+
     /**
      * Use this Method for this pattern
      * dd MMMM yyyy zzzz
      */
     @inline def ddMMMMyyyyzzzz = generalMethod(true, "dd MMMM yyyy zzzz")
-    
+
     /**
      * Use this Method for this pattern
      * E, dd MMM yyyy HH:mm:ss z
@@ -123,7 +132,7 @@ package object DateUtils {
    */
   implicit class individualComponentsFromDate(val date: Date) {
 
-    private def calendarObj = {
+    private[this] def calendarObj = {
       val cal = Calendar.getInstance()
       cal.setTime(date)
       cal
@@ -149,6 +158,10 @@ package object DateUtils {
 
     @inline def millisecond = calendarObj.get(Calendar.MILLISECOND)
 
+    /**
+     * TODO:
+     * 1. getTImeZone
+     */
   }
 
   /**
@@ -198,6 +211,9 @@ package object DateUtils {
       calendarObj.set(Calendar.MILLISECOND, 0)
       calendarObj.getTime
     }
+
+    // TODO def toNearest Sunday
+
   }
 
   /**
@@ -210,8 +226,51 @@ package object DateUtils {
     }
 
     def inAnotherZone(anotherZone: String): Either[Date, EException] = {
-      Try(Left(Date.from(ZonedDateTime.ofInstant(date.toInstant(), ZoneId.of(anotherZone)).toInstant())))
-        .getOrElse(Right(ConversionException(s"${anotherZone} is not a valid")))
+      TimeZone.getAvailableIDs.contains(anotherZone)
+      Try({
+        if (TimeZone.getAvailableIDs.contains(anotherZone)) {
+          Left(Date.from(ZonedDateTime.ofInstant(date.toInstant(), ZoneId.of(anotherZone)).toInstant()))
+        } else {
+          Right(ElementnotFoundException(s"${anotherZone} is not a valid Zone ID"))
+        }
+      }).getOrElse(Right(ConversionException(s"${anotherZone} is not a valid")))
     }
+
   }
+
+  /**
+   * TODO:
+   * 1. Get all the dates of Mentioned Day for the past year from given date
+   * 2. Get all the dates of Mentioned Day for the future year from given date
+   * 3. Number of SUnDAY/any day in a year, remaining from current date, remaining from day
+   * 4. current Day in another Year, returns the Day s
+   */
+
+  implicit class differenceofDuration(val date: Date) {
+
+    def diffInYears(dateOp: Option[Date] = None) = {
+      val _anotherDate = if (dateOp.isDefined) new DateTime(date) else new DateTime()
+      Years.yearsBetween(new DateTime(date), _anotherDate).getYears
+    }
+
+    def diffInMonths(dateOp: Option[Date] = None) = {
+      val _anotherDate = if (dateOp.isDefined) new DateTime(date) else new DateTime()
+      Months.monthsBetween(new DateTime(date), _anotherDate).getMonths
+    }
+
+    def diffInDays(dateOp: Option[Date] = None) = {
+      val _anotherDate = if (dateOp.isDefined) new DateTime(date) else new DateTime()
+      Days.daysBetween(new DateTime(date), _anotherDate).getDays
+    }
+    def diffInMinutes(dateOp: Option[Date] = None) = {
+      val _anotherDate = if (dateOp.isDefined) new DateTime(date) else new DateTime()
+      Minutes.minutesBetween(new DateTime(date), _anotherDate).getMinutes
+    }
+    def diffInSeconds(dateOp: Option[Date] = None) = {
+      val _anotherDate = if (dateOp.isDefined) new DateTime(date) else new DateTime()
+      Seconds.secondsBetween(new DateTime(date), _anotherDate).getSeconds
+    }
+
+  }
+
 }
