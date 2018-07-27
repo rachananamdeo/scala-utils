@@ -26,6 +26,7 @@ import com.shanker.exception.ElementnotFoundException
 import com.shanker.exception.PatternFoundException
 import com.shanker.exception.ValidationException
 
+// TODO: Add the check style configuration
 package object DateUtils {
 
   /**
@@ -33,7 +34,7 @@ package object DateUtils {
    * 1. String Validation
    * 2. Date Object
    */
-  implicit class stringToDate(val dateString: String) {
+  implicit class StringToDate(val dateString: String) {
 
     def dateFromInstant: Either[Date, EException] = {
       Try(Left(Date.from(Instant.parse(dateString))))
@@ -66,6 +67,14 @@ package object DateUtils {
      * "dd MMMM yyyy zzzz",
      * "E, dd MMM yyyy HH:mm:ss z",
      * "E, MMM dd yyyy HH:mm:ss"
+     * 
+     * TODO: To add more date patterns
+     * 
+     * Thought:
+     * How about taking the date and dissemble it and return the date
+     * like first check the pattern if found ok else 
+     * dissecct the given date string and try to form the 
+     * best possible date pattern and return the pattern
      */
     def toDate: Either[Date, EException] = {
 
@@ -130,7 +139,7 @@ package object DateUtils {
   /**
    * Returns the individual components
    */
-  implicit class individualComponentsFromDate(val date: Date) {
+  implicit class IndividualComponentsFromDate(val date: Date) {
 
     private[this] def calendarObj = {
       val cal = Calendar.getInstance()
@@ -167,7 +176,7 @@ package object DateUtils {
   /**
    * Rounds off the date to the nearest formats
    */
-  implicit class roundedDate(val date: Date) {
+  implicit class RoundedDate(val date: Date) {
 
     private def calendarObj = {
       val cal = Calendar.getInstance()
@@ -219,7 +228,7 @@ package object DateUtils {
   /**
    * Conversion of the to different formats i.e into Time Zone conversion
    */
-  implicit class convertDate(date: Date) {
+  implicit class ConvertDate(date: Date) {
 
     def inUTC: Date = {
       Date.from(ZonedDateTime.ofInstant(date.toInstant(), ZoneId.of("UTC")).toInstant())
@@ -237,6 +246,13 @@ package object DateUtils {
     }
 
   }
+  
+  /**
+   * TODO: 
+   * 1. isFutureDate
+   * 2. Same Day in the nearestFuture on the same date
+   * 3. Same Day in the nearestPast on the same date
+   */
 
   /**
    * TODO:
@@ -246,7 +262,8 @@ package object DateUtils {
    * 4. current Day in another Year, returns the Day s
    */
 
-  implicit class differenceofDuration(val date: Date) {
+  // TODO: Add the comments for scala Doc
+  implicit class DifferenceofDuration(val date: Date) {
 
     def diffInYears(dateOp: Option[Date] = None) = {
       val _anotherDate = if (dateOp.isDefined) new DateTime(date) else new DateTime()
