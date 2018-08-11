@@ -25,6 +25,7 @@ import com.shanker.exception.EException
 import com.shanker.exception.ElementnotFoundException
 import com.shanker.exception.PatternFoundException
 import com.shanker.exception.ValidationException
+import com.shanker.annotations.Since
 
 // TODO: Add the check style configuration
 package object DateUtils {
@@ -34,6 +35,7 @@ package object DateUtils {
    * 1. String Validation
    * 2. Date Object
    */
+  @Since("Starting")
   implicit class StringToDate(val dateString: String) {
 
     def dateFromInstant: Either[Date, EException] = {
@@ -67,13 +69,13 @@ package object DateUtils {
      * "dd MMMM yyyy zzzz",
      * "E, dd MMM yyyy HH:mm:ss z",
      * "E, MMM dd yyyy HH:mm:ss"
-     * 
+     *
      * TODO: To add more date patterns
-     * 
+     *
      * Thought:
      * How about taking the date and dissemble it and return the date
-     * like first check the pattern if found ok else 
-     * dissecct the given date string and try to form the 
+     * like first check the pattern if found ok else
+     * dissecct the given date string and try to form the
      * best possible date pattern and return the pattern
      */
     def toDate: Either[Date, EException] = {
@@ -139,6 +141,7 @@ package object DateUtils {
   /**
    * Returns the individual components
    */
+  @Since("Starting")
   implicit class IndividualComponentsFromDate(val date: Date) {
 
     private[this] def calendarObj = {
@@ -176,6 +179,7 @@ package object DateUtils {
   /**
    * Rounds off the date to the nearest formats
    */
+  @Since("Starting")
   implicit class RoundedDate(val date: Date) {
 
     private def calendarObj = {
@@ -228,6 +232,7 @@ package object DateUtils {
   /**
    * Conversion of the to different formats i.e into Time Zone conversion
    */
+  @Since("Starting")
   implicit class ConvertDate(date: Date) {
 
     def inUTC: Date = {
@@ -246,13 +251,33 @@ package object DateUtils {
     }
 
   }
-  
+
   /**
-   * TODO: 
+   * TODO:
    * 1. isFutureDate
    * 2. Same Day in the nearestFuture on the same date
    * 3. Same Day in the nearestPast on the same date
    */
+  @Since("0.1")
+  implicit class FutureDatesOpr(val date: Date) {
+
+    private def calendarObj = {
+      val cal = Calendar.getInstance()
+      cal.setTime(date)
+      cal
+    }
+
+    def isFutureDate(dateOp: Option[Date] = None) = {
+      val _anotherDate = if (dateOp.isDefined) new DateTime(date) else new DateTime()
+      if (new DateTime(date).getMillis() - _anotherDate.getMillis() > 0) true
+      //else if(new DateTime(date).getMillis()-_anotherDate.getMillis()<0) false
+      else false
+    }
+
+    def getDay = {
+      calendarObj.get(Calendar.DAY_OF_WEEK)
+    }
+  }
 
   /**
    * TODO:
@@ -261,8 +286,49 @@ package object DateUtils {
    * 3. Number of SUnDAY/any day in a year, remaining from current date, remaining from day
    * 4. current Day in another Year, returns the Day s
    */
+  @Since("0.1")
+  implicit class DaysOpr(val date: Date) {
+
+    def calendarObj(date: Date) = {
+      val cal = Calendar.getInstance()
+      cal.setTime(date)
+      cal
+    }
+
+    def sundaysCount(dateOp: Option[Date] = None) = {
+      val _anotherDate = if (dateOp.isDefined) new DateTime(date) else new DateTime()
+      var sunCount = 0
+      val (sDate, eDate) = if (new DateTime(date).getMillis() - _anotherDate.getMillis() > 0) { (_anotherDate.toDate(), date) } else { (date, _anotherDate.toDate()) }
+      val (startDate, endStart) = (calendarObj(sDate), calendarObj(eDate))
+
+      while (endStart.after(startDate)) {
+        if (startDate.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY)
+          sunCount + 1
+        startDate.add(Calendar.DATE, 1)
+      }
+    }
+
+    def datesOfDay(dateOp: Option[Date] = None) = {
+      val _anotherDate = if (dateOp.isDefined) new DateTime(date) else new DateTime()
+      var dates = List[Date]()
+      val (sDate, eDate) = if (new DateTime(date).getMillis() - _anotherDate.getMillis() > 0) { (_anotherDate.toDate(), date) } else { (date, _anotherDate.toDate()) }
+      val (startDate, endStart) = (calendarObj(sDate), calendarObj(eDate))
+
+      while (endStart.after(startDate)) {
+        if (startDate.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY)
+          dates ::= startDate.getTime()
+        startDate.add(Calendar.DATE, 7)
+      }
+    }
+
+    def isLeapYear = {
+      if (calendarObj(date).getTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().isLeapYear()) true
+      else false
+    }
+  }
 
   // TODO: Add the comments for scala Doc
+  @Since("Starting")
   implicit class DifferenceofDuration(val date: Date) {
 
     def diffInYears(dateOp: Option[Date] = None) = {
