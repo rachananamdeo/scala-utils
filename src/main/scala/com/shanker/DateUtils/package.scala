@@ -252,12 +252,7 @@ package object DateUtils {
 
   }
 
-  /**
-   * TODO:
-   * 1. isFutureDate
-   * 2. Same Day in the nearestFuture on the same date
-   * 3. Same Day in the nearestPast on the same date
-   */
+ 
   @Since("0.1")
   implicit class FutureDatesOpr(val date: Date) {
 
